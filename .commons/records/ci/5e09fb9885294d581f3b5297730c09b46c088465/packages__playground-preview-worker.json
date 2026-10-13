@@ -1,0 +1,10 @@
+{
+  "base": "5e09fb9885294d581f3b5297730c09b46c088465",
+  "packageDir": "packages/playground-preview-worker",
+  "baseFailures": [
+    "tests/index.test.ts > Preview Worker",
+    "tests/index.test.ts > Upload Worker",
+    "tests/index.test.ts > Raw HTTP preview"
+  ],
+  "testFiles": 1
+}

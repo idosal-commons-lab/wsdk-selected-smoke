@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "layout": "packages",
+  "packages": {
+    "packages/miniflare": {
+      "build": ["node", "scripts/build.mjs"]
+    }
+  },
+  "notes": [
+    "miniflare's build script also builds its type declarations (types:build), which type-checks test files and fails on their errors; a check only needs the runtime bundle (scripts/build.mjs)."
+  ]
+}

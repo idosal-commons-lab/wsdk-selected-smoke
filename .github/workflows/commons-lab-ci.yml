@@ -1,0 +1,34 @@
+name: ci
+on:
+  pull_request:
+  merge_group:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Commons planner
+        run: npm install --prefix .commons/tool --omit=dev --no-audit --no-fund --loglevel=error
+      - name: Commons' related check of the change (build, type-check, the tests coverage ties to it)
+        shell: bash
+        env:
+          COMMONS_VERIFY_DIR: ${{ github.workspace }}/.commons/records
+          COMMONS_PROFILE: ${{ github.workspace }}/.commons/project.json
+          COMMONS_CHECK_NICE: "0"
+        run: |
+          files=$(git diff --name-only "${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}" HEAD | grep -vE '^(\.commons|\.github)/' || true)
+          if [ -z "$files" ]; then echo "nothing to check"; exit 0; fi
+          echo "$files"
+          node .commons/tool/dist/bench/issues/check.js related $files
