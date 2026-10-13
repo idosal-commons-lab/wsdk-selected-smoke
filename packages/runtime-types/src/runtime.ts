@@ -123,7 +123,7 @@ async function generate({
 		? `+${compatibilityFlags.join("+")}`
 		: "";
 
-	const path = `http://dummy.com/${compatibilityDate}${flagsString}`;
+	const path = `http://runtime-types.invalid/${compatibilityDate}${flagsString}`;
 
 	try {
 		const res = await mf.dispatchFetch(path);
@@ -131,6 +131,15 @@ async function generate({
 
 		if (!res.ok) {
 			throw new Error(text);
+		}
+
+		// Never accept an unrelated 200 response (e.g. HTML from a parked domain)
+		// as runtime declarations: it would be written to disk and then reused
+		// by the header-based cache.
+		if (text.trim() === "" || /^\s*</.test(text)) {
+			throw new Error(
+				"Runtime type generation returned an unexpected response that does not contain type declarations."
+			);
 		}
 
 		return text;
