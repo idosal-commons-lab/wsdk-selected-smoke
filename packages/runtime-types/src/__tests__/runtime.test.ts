@@ -65,7 +65,7 @@ describe("generateRuntimeTypes", () => {
 		// nodejs_compat flags are stripped from the dispatch URL; the remaining
 		// flags keep their original caller-provided order.
 		expect(dispatchFetchMock).toHaveBeenCalledWith(
-			"http://dummy.com/2024-11-06+flag_b+flag_a"
+			"http://runtime-types.invalid/2024-11-06+flag_b+flag_a"
 		);
 		expect(result.runtimeHeader).toBe(
 			getRuntimeHeader(WORKERD_VERSION, "2024-11-06", [
@@ -84,7 +84,7 @@ describe("generateRuntimeTypes", () => {
 		});
 
 		expect(dispatchFetchMock).toHaveBeenCalledWith(
-			"http://dummy.com/2026-08-04+no_nodejs_compat+no_nodejs_compat_v2"
+			"http://runtime-types.invalid/2026-08-04+no_nodejs_compat+no_nodejs_compat_v2"
 		);
 		expect(result.runtimeHeader).toBe(
 			getRuntimeHeader(WORKERD_VERSION, "2026-08-04", [])
@@ -150,6 +150,20 @@ describe("generateRuntimeTypes", () => {
 				compatibilityDate: "2024-11-06",
 			})
 		).rejects.toThrow("boom");
+		expect(disposeMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("rejects a successful response that is not type declarations", async ({
+		expect,
+	}) => {
+		dispatchFetchMock.mockResolvedValue({
+			ok: true,
+			text: async () => "<html><script src='https://example.com/x.js'></script></html>",
+		});
+
+		await expect(
+			generateRuntimeTypes({ compatibilityDate: "2024-11-06" })
+		).rejects.toThrow("unexpected response");
 		expect(disposeMock).toHaveBeenCalledTimes(1);
 	});
 });
